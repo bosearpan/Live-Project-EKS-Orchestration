@@ -1,0 +1,12 @@
+ kind: PersistentVolumeClaim                  #PVC creation
+ apiVersion: v1
+ metadata:
+   name: data-volume
+   namespace: demo
+ spec:
+   storageClassName: standard
+   accessModes:
+     - ReadWriteOnce
+   resources:
+     requests:
+       storage: 1Gi

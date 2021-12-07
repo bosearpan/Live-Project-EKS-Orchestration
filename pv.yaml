@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume                         #PV creation
+metadata:
+  name: data-volume
+  namespace: demo
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  claimRef: 
+    name: data-volume
+    namespace: demo
+  hostPath:
+    path: "/mnt/data"
