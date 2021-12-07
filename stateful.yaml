@@ -1,0 +1,72 @@
+---
+#creating a service for redis
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+  namespace: demo
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    name: redis
+  selector:
+    app: redis
+---
+#Config Map provisioning
+apiVersion: v1
+kind: ConfigMap                 
+metadata:
+  name: redis-config
+  namespace: demo
+  labels:
+    app: redis
+data:
+  redis.conf: |-
+    dir /var/lib/redis
+    port 6379
+    bind 0.0.0.0  
+    appendonly yes
+    protected-mode no
+---
+# Redis Statefulset
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-server
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: redis # has to match .spec.template.metadata.labels
+  serviceName: "redis-service"
+  replicas: 1 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: redis # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis
+        image: redis:6.2.6-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+        envFrom:                 # Attaching config map
+          - configMapRef:
+              name: redis-config
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/redis
+      volumes:
+        - name: data
+          persistentVolumeClaim:                 #PVC claim
+            claimName: data-volume
+
